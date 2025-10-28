@@ -1,16 +1,53 @@
-# praktikum_api_crud
+## CRUD & Styling — Implementasi Dasar API Eksternal pada Flutter
 
-A new Flutter project.
+# 1. Tujuan Praktikum
 
-## Getting Started
+Memahami konsep dasar API dan REST API.
+Menggunakan package http untuk melakukan request ke API eksternal.
+Melakukan operasi CRUD (Create, Read, Update, Delete).
+Menampilkan data JSON ke UI Flutter.
+Mengimplementasikan styling dasar pada komponen UI.
 
-This project is a starting point for a Flutter application.
+# 2. Alat dan Bahan
 
-A few resources to get you started if this is your first Flutter project:
+Flutter SDK
+Android Studio / VS Code
+Emulator atau perangkat fisik Android
+Package: http: ^1.2.1
+API: https://reqres.in
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+# 3. Dasar Teori (Singkat)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+API (Application Programming Interface): Jembatan antara client (Flutter) dan server.
+REST API: Menggunakan metode HTTP seperti GET, POST, PUT, DELETE.
+JSON: Format pertukaran data yang ringan dan mudah dibaca.
+Package http: Digunakan untuk mengirim dan menerima data dari API.
+
+# 4. Langkah Implementasi
+
+Setup Proyek Flutter
+Membuat project baru praktikum_api_crud.
+Menambahkan dependency http.
+Model Data (user_model.dart)
+Membuat class User untuk menampung data dari API.
+API Service (api_service.dart)
+Membuat fungsi fetchUsers(), createUser(), updateUser(), deleteUser().
+Tampilan Utama (main.dart)
+Menampilkan daftar pengguna dari API menggunakan FutureBuilder dan ListView.
+Form Tambah Data (add_user_page.dart)
+Menggunakan TextFormField dan validasi form untuk menambahkan user baru.
+Fitur Update & Delete
+Menghapus dan mengedit data melalui API (tugas lanjutan).
+
+# 5. Hasil Pengujian
+
+Aplikasi berhasil menampilkan daftar pengguna dari API ReqRes.
+Data dapat ditambahkan menggunakan tombol “+”.
+Fitur edit dan delete berjalan sesuai instruksi modul.
+Styling menggunakan Card, CircleAvatar, dan FloatingActionButton.
+
+# 6. Kesimpulan
+
+Aplikasi Flutter dapat berinteraksi dengan API eksternal menggunakan package http.
+Proses CRUD berhasil dilakukan dengan format JSON.
+Penggunaan FutureBuilder memudahkan pengelolaan data asinkron.
