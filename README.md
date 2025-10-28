@@ -16,7 +16,7 @@
 ~ Package: http: ^1.2.1
 ~ API: https://reqres.in
 
-# 3. Dasar Teori (Singkat)
+# 3. Dasar Teori
 
 ~ API (Application Programming Interface): Jembatan antara client (Flutter) dan server.
 ~ REST API: Menggunakan metode HTTP seperti GET, POST, PUT, DELETE.
