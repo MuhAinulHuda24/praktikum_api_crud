@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
+import 'user_model.dart';
 
-class AddUserPage extends StatefulWidget {
-  const AddUserPage({super.key});
+class EditUserPage extends StatefulWidget {
+  final User user;
+  
+  const EditUserPage({super.key, required this.user});
 
   @override
-  State<AddUserPage> createState() => _AddUserPageState();
+  State<EditUserPage> createState() => _EditUserPageState();
 }
 
-class _AddUserPageState extends State<AddUserPage> {
+class _EditUserPageState extends State<EditUserPage> {
   final ApiService apiService = ApiService();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _jobController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _jobController;
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: '${widget.user.firstName} ${widget.user.lastName}');
+    _jobController = TextEditingController(text: 'Developer'); // Default value
+  }
 
   void _submitData() async {
     if (_formKey.currentState!.validate()) {
@@ -22,18 +32,19 @@ class _AddUserPageState extends State<AddUserPage> {
       });
       
       try {
-        final response = await apiService.createUser(
+        final response = await apiService.updateUser(
+          widget.user.id.toString(),
           _nameController.text,
           _jobController.text,
         );
         
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User "${response['name']}" berhasil ditambahkan! (ID: ${response['id']})')),
+          SnackBar(content: Text('User "${response['name']}" berhasil diupdate!')),
         );
         Navigator.of(context).pop(true);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambah user: $e')),
+          SnackBar(content: Text('Gagal mengupdate user: $e')),
         );
       } finally {
         setState(() {
@@ -54,7 +65,7 @@ class _AddUserPageState extends State<AddUserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah User Baru'),
+        title: const Text('Edit User'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -63,6 +74,15 @@ class _AddUserPageState extends State<AddUserPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(widget.user.avatar),
+                  radius: 30,
+                ),
+                title: Text('${widget.user.firstName} ${widget.user.lastName}'),
+                subtitle: Text(widget.user.email),
+              ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -114,7 +134,7 @@ class _AddUserPageState extends State<AddUserPage> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text('Tambahkan User'),
+                      child: const Text('Update User'),
                     ),
             ],
           ),

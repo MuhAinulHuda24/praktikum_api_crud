@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'user_model.dart';
 import 'add_user_page.dart';
+import 'edit_user_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,10 +14,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CRUD API Flutter',
+      title: 'Flutter API CRUD Praktikum',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Colors.blueAccent,
+        ),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const UserListPage(),
     );
@@ -40,98 +48,179 @@ class _UserListPageState extends State<UserListPage> {
     futureUsers = apiService.fetchUsers();
   }
 
-  Future<void> _refreshUsers() async {
+  Future<void> _refreshUserList() async {
     setState(() {
       futureUsers = apiService.fetchUsers();
     });
+  }
+
+  void _showDeleteDialog(User user) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Hapus'),
+          content: Text('Apakah Anda yakin ingin menghapus ${user.firstName}?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await apiService.deleteUser(user.id.toString());
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('User ${user.firstName} berhasil dihapus!')),
+                  );
+                  _refreshUserList();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal menghapus user: $e')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Pengguna (Read)'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        title: const Text('Daftar Pengguna'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshUserList,
+          ),
+        ],
       ),
-      body: FutureBuilder<List<User>>(
-        future: futureUsers,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Terjadi error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Tidak ada pengguna.'));
-          }
-
-          final users = snapshot.data!;
-          return RefreshIndicator(
-            onRefresh: _refreshUsers,
-            child: ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(user.avatar),
+      body: Center(
+        child: FutureBuilder<List<User>>(
+          future: futureUsers,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Gagal memuat pengguna: ${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
                     ),
-                    title: Text('${user.firstName} ${user.lastName}'),
-                    subtitle: Text(user.email),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _showDeleteDialog(user),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _refreshUserList,
+                      child: const Text('Coba Lagi'),
                     ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
+                  ],
+                ),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Text('Tidak ada pengguna yang ditemukan');
+            } else {
+              List<User> users = snapshot.data!;
+              return buildUserListView(users);
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
-            context,
+          final bool? result = await Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const AddUserPage()),
           );
-          if (result == true) _refreshUsers();
+          if (result == true) {
+            _refreshUserList();
+          }
         },
-        backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
+        tooltip: 'Tambah User Baru',
       ),
     );
   }
 
-  void _showDeleteDialog(User user) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus User?'),
-        content: Text('Yakin mau hapus ${user.firstName}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                await apiService.deleteUser(user.id.toString());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('User ${user.firstName} dihapus.')),
-                );
-                _refreshUsers();
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gagal hapus user: $e')),
-                );
-              }
-            },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+  Widget buildUserListView(List<User> users) {
+    return ListView.builder(
+      itemCount: users.length,
+      itemBuilder: (context, index) {
+        User user = users[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Card(
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(12),
+              leading: Hero(
+                tag: 'avatar=${user.id}',
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(user.avatar),
+                  radius: 28,
+                ),
+              ),
+              title: Text(
+                '${user.firstName} ${user.lastName}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black87,
+                ),
+              ),
+              subtitle: Text(
+                user.email,
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () async {
+                      final bool? result = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EditUserPage(user: user),
+                        ),
+                      );
+                      if (result == true) {
+                        _refreshUserList();
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      _showDeleteDialog(user);
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
