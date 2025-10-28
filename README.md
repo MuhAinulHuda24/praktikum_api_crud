@@ -45,7 +45,8 @@
 ~ Data dapat ditambahkan menggunakan tombol “+”.
 ~ Fitur edit dan delete berjalan sesuai instruksi modul.
 ~ Styling menggunakan Card, CircleAvatar, dan FloatingActionButton.
-![ss apl 2](https://github.com/user-attachments/assets/f3e46856-d2be-4443-a702-794a51882a8c)
+
+![ss apl saya ](https://github.com/user-attachments/assets/93418831-d7b2-488e-b2be-06951188a96b)
 
 
 # 6. Kesimpulan
